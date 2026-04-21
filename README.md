@@ -58,6 +58,36 @@ Override with env vars:
 - `DB_URL`
 - `DB_USER`
 - `DB_PASSWORD`
+- `ADMIN_USERNAME`
+- `ADMIN_PASSWORD`
+- `ADMIN_SESSION_TTL_MINUTES`
+
+Copy the example file and adjust values for your server:
+
+```bash
+cp .env.example .env
+```
+
+## Admin Login API
+
+- `POST /api/admin/auth/login`
+- `GET /api/admin/auth/me`
+- `POST /api/admin/auth/logout`
+
+Login payload:
+
+```json
+{
+  "username": "Ganeshan",
+  "password": "RaniGanesan123"
+}
+```
+
+For protected write APIs, send the token from login in the `Authorization` header:
+
+```http
+Authorization: Bearer <token>
+```
 
 ## Run
 
@@ -74,4 +104,8 @@ Runs on port `8084` by default.
 cd /var/www/fruits-springboot-api
 mvn clean package
 ```
+
+## Deployment Notes
+
+For full deployment steps with systemd and nginx reverse proxy, see `DEPLOYMENT.md`.
 # rani-dry-fruits-backend
