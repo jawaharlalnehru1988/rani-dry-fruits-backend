@@ -1,0 +1,30 @@
+server:
+  port: 8084
+
+spring:
+  application:
+    name: fruits-springboot-api
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/demoappdb}
+    username: ${DB_USER:demoappuser}
+    password: ${DB_PASSWORD:demoapp123}
+  jpa:
+    hibernate:
+      ddl-auto: none
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+
+logging:
+  level:
+    org.hibernate.SQL: INFO
+
+admin:
+  auth:
+    username: ${ADMIN_USERNAME:Ganeshan}
+    password: ${ADMIN_PASSWORD:RaniGanesan123}
+    session-ttl-minutes: ${ADMIN_SESSION_TTL_MINUTES:120}
