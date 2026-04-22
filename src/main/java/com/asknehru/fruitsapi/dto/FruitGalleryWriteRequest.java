@@ -20,4 +20,14 @@ public class FruitGalleryWriteRequest {
 
     @JsonProperty("imagePath")
     private List<String> imagePath;
+
+    // Supports frontend payload: images: [{ imageUrl: "data:image/..." }]
+    private List<ImageInput> images;
+
+    @Data
+    @NoArgsConstructor
+    public static class ImageInput {
+        @JsonProperty("imageUrl")
+        private String imageUrl;
+    }
 }

@@ -28,3 +28,6 @@ admin:
     username: ${ADMIN_USERNAME:Ganeshan}
     password: ${ADMIN_PASSWORD:RaniGanesan123}
     session-ttl-minutes: ${ADMIN_SESSION_TTL_MINUTES:120}
+
+app:
+  media-root: ${MEDIA_ROOT:media}

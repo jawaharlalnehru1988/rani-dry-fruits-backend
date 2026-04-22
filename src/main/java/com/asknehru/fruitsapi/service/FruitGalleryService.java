@@ -4,6 +4,7 @@ import com.asknehru.fruitsapi.domain.FruitGallery;
 import com.asknehru.fruitsapi.domain.FruitGalleryImage;
 import com.asknehru.fruitsapi.dto.FruitGalleryResponse;
 import com.asknehru.fruitsapi.dto.FruitGalleryWriteRequest;
+import com.asknehru.fruitsapi.dto.FruitGalleryWriteRequest.ImageInput;
 import com.asknehru.fruitsapi.exception.ApiValidationException;
 import com.asknehru.fruitsapi.exception.ResourceNotFoundException;
 import com.asknehru.fruitsapi.repository.FruitGalleryImageRepository;
@@ -24,10 +25,16 @@ public class FruitGalleryService {
 
     private final FruitGalleryRepository fruitGalleryRepository;
     private final FruitGalleryImageRepository fruitGalleryImageRepository;
+    private final MediaStorageService mediaStorageService;
 
-    public FruitGalleryService(FruitGalleryRepository fruitGalleryRepository, FruitGalleryImageRepository fruitGalleryImageRepository) {
+    public FruitGalleryService(
+        FruitGalleryRepository fruitGalleryRepository,
+        FruitGalleryImageRepository fruitGalleryImageRepository,
+        MediaStorageService mediaStorageService
+    ) {
         this.fruitGalleryRepository = fruitGalleryRepository;
         this.fruitGalleryImageRepository = fruitGalleryImageRepository;
+        this.mediaStorageService = mediaStorageService;
     }
 
     @Transactional(readOnly = true)
@@ -60,6 +67,7 @@ public class FruitGalleryService {
     @Transactional
     public FruitGalleryResponse create(FruitGalleryWriteRequest request) {
         validateRequest(request, false);
+        List<String> resolvedPaths = resolveIncomingImagePaths(request);
 
         FruitGallery fruit = new FruitGallery();
         fruit.setName(request.getName().trim());
@@ -69,7 +77,7 @@ public class FruitGalleryService {
 
         fruit = fruitGalleryRepository.save(fruit);
 
-        List<FruitGalleryImage> images = buildImages(fruit, request.getImagePath());
+        List<FruitGalleryImage> images = buildImages(fruit, resolvedPaths);
         fruitGalleryImageRepository.saveAll(images);
 
         return toResponse(fruit, images);
@@ -81,6 +89,7 @@ public class FruitGalleryService {
             .orElseThrow(() -> new ResourceNotFoundException("Fruit gallery not found with id: " + id));
 
         validateRequest(request, true);
+        List<String> resolvedPaths = resolveIncomingImagePaths(request);
 
         if (request.getName() != null) {
             fruit.setName(request.getName().trim());
@@ -98,10 +107,10 @@ public class FruitGalleryService {
         fruit = fruitGalleryRepository.save(fruit);
 
         List<FruitGalleryImage> images;
-        if (request.getImagePath() != null) {
+        if (shouldReplaceImages(request)) {
             List<FruitGalleryImage> existing = fruitGalleryImageRepository.findAllByFruitIdOrderByIdAsc(id);
             fruitGalleryImageRepository.deleteAll(existing);
-            images = buildImages(fruit, request.getImagePath());
+            images = buildImages(fruit, resolvedPaths);
             fruitGalleryImageRepository.saveAll(images);
         } else {
             images = fruitGalleryImageRepository.findAllByFruitIdOrderByIdAsc(id);
@@ -166,8 +175,8 @@ public class FruitGalleryService {
             if (request.getDescription() == null) {
                 addError(errors, "description", "This field is required.");
             }
-            if (request.getImagePath() == null) {
-                addError(errors, "imagePath", "This field is required.");
+            if (request.getImagePath() == null && request.getImages() == null) {
+                addError(errors, "imagePath", "Provide imagePath or images.");
             }
         }
 
@@ -206,9 +215,40 @@ public class FruitGalleryService {
             request.setImagePath(cleanedPaths);
         }
 
+        if (request.getImages() != null) {
+            List<ImageInput> cleanedImages = request.getImages().stream()
+                .filter(image -> image != null && image.getImageUrl() != null && !image.getImageUrl().trim().isEmpty())
+                .toList();
+
+            if (cleanedImages.isEmpty()) {
+                addError(errors, "images", "At least one imageUrl is required.");
+            }
+            request.setImages(cleanedImages);
+        }
+
         if (!errors.isEmpty()) {
             throw new ApiValidationException(errors);
         }
+    }
+
+    private List<String> resolveIncomingImagePaths(FruitGalleryWriteRequest request) {
+        List<String> resolved = new ArrayList<>();
+
+        if (request.getImagePath() != null) {
+            resolved.addAll(request.getImagePath());
+        }
+
+        if (request.getImages() != null) {
+            for (ImageInput image : request.getImages()) {
+                resolved.add(mediaStorageService.storeFruitDataImage(image.getImageUrl(), request.getName()));
+            }
+        }
+
+        return resolved;
+    }
+
+    private boolean shouldReplaceImages(FruitGalleryWriteRequest request) {
+        return request.getImagePath() != null || request.getImages() != null;
     }
 
     private void addError(Map<String, List<String>> errors, String field, String message) {
