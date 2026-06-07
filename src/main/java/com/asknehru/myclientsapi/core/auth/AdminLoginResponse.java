@@ -1,4 +1,4 @@
-package com.asknehru.fruitsapi.dto;
+package com.asknehru.myclientsapi.core.auth;
 
 import java.time.Instant;
 

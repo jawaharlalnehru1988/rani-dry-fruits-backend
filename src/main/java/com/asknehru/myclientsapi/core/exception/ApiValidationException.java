@@ -1,4 +1,4 @@
-package com.asknehru.fruitsapi.exception;
+package com.asknehru.myclientsapi.core.exception;
 
 import java.util.List;
 import java.util.Map;

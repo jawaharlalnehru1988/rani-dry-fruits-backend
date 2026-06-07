@@ -1,4 +1,4 @@
-package com.asknehru.fruitsapi.config;
+package com.asknehru.myclientsapi.core.config;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;

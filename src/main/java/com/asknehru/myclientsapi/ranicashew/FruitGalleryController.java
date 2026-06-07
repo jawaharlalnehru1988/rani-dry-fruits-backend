@@ -1,8 +1,8 @@
-package com.asknehru.fruitsapi.controller;
+package com.asknehru.myclientsapi.ranicashew;
 
-import com.asknehru.fruitsapi.dto.FruitGalleryResponse;
-import com.asknehru.fruitsapi.dto.FruitGalleryWriteRequest;
-import com.asknehru.fruitsapi.service.FruitGalleryService;
+import com.asknehru.myclientsapi.ranicashew.FruitGalleryResponse;
+import com.asknehru.myclientsapi.ranicashew.FruitGalleryWriteRequest;
+import com.asknehru.myclientsapi.ranicashew.FruitGalleryService;
 import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

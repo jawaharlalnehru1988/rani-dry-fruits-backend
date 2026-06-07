@@ -1,4 +1,4 @@
-package com.asknehru.fruitsapi.domain;
+package com.asknehru.myclientsapi.ranicashew;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;

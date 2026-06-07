@@ -1,15 +1,17 @@
-package com.asknehru.fruitsapi.dto;
+package com.asknehru.myclientsapi.ranicashew;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor
-public class FruitGalleryWriteRequest {
+public class FruitGalleryResponse {
 
+    private Long id;
     private String name;
     private BigDecimal price;
 
@@ -21,13 +23,9 @@ public class FruitGalleryWriteRequest {
     @JsonProperty("imagePath")
     private List<String> imagePath;
 
-    // Supports frontend payload: images: [{ imageUrl: "data:image/..." }]
-    private List<ImageInput> images;
+    @JsonProperty("created_at")
+    private LocalDateTime createdAt;
 
-    @Data
-    @NoArgsConstructor
-    public static class ImageInput {
-        @JsonProperty("imageUrl")
-        private String imageUrl;
-    }
+    @JsonProperty("updated_at")
+    private LocalDateTime updatedAt;
 }

@@ -1,14 +1,15 @@
-package com.asknehru.fruitsapi.service;
+package com.asknehru.myclientsapi.ranicashew;
 
-import com.asknehru.fruitsapi.domain.FruitGallery;
-import com.asknehru.fruitsapi.domain.FruitGalleryImage;
-import com.asknehru.fruitsapi.dto.FruitGalleryResponse;
-import com.asknehru.fruitsapi.dto.FruitGalleryWriteRequest;
-import com.asknehru.fruitsapi.dto.FruitGalleryWriteRequest.ImageInput;
-import com.asknehru.fruitsapi.exception.ApiValidationException;
-import com.asknehru.fruitsapi.exception.ResourceNotFoundException;
-import com.asknehru.fruitsapi.repository.FruitGalleryImageRepository;
-import com.asknehru.fruitsapi.repository.FruitGalleryRepository;
+import com.asknehru.myclientsapi.ranicashew.FruitGallery;
+import com.asknehru.myclientsapi.ranicashew.FruitGalleryImage;
+import com.asknehru.myclientsapi.ranicashew.FruitGalleryResponse;
+import com.asknehru.myclientsapi.ranicashew.FruitGalleryWriteRequest;
+import com.asknehru.myclientsapi.ranicashew.FruitGalleryWriteRequest.ImageInput;
+import com.asknehru.myclientsapi.core.exception.ApiValidationException;
+import com.asknehru.myclientsapi.core.exception.ResourceNotFoundException;
+import com.asknehru.myclientsapi.core.media.MediaStorageService;
+import com.asknehru.myclientsapi.ranicashew.FruitGalleryImageRepository;
+import com.asknehru.myclientsapi.ranicashew.FruitGalleryRepository;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;

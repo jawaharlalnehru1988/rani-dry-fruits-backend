@@ -1,12 +1,12 @@
-package com.asknehru.fruitsapi;
+package com.asknehru.myclientsapi;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class FruitsApiApplication {
+public class MyClientsApiApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(FruitsApiApplication.class, args);
+        SpringApplication.run(MyClientsApiApplication.class, args);
     }
 }

@@ -92,7 +92,7 @@ Authorization: Bearer <token>
 ## Run
 
 ```bash
-cd /var/www/fruits-springboot-api
+cd /var/www/myclients-backend/api
 mvn spring-boot:run
 ```
 
@@ -101,11 +101,10 @@ Runs on port `8084` by default.
 ## Build
 
 ```bash
-cd /var/www/fruits-springboot-api
+cd /var/www/myclients-backend/api
 mvn clean package
 ```
 
 ## Deployment Notes
 
 For full deployment steps with systemd and nginx reverse proxy, see `DEPLOYMENT.md`.
-# rani-dry-fruits-backend

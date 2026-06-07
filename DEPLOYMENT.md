@@ -12,13 +12,13 @@ This guide describes a simple production setup on Linux using Java 21, Maven, Po
 ## 2. Build
 
 ```bash
-cd /var/www/fruits-springboot-api
+cd /var/www/myclients-backend/api
 mvn clean package
 ```
 
 Expected jar:
 
-- target/fruits-springboot-api-0.0.1-SNAPSHOT.jar
+- target/myclients-backend-0.0.1-SNAPSHOT.jar
 
 ## 3. Environment Variables
 
@@ -26,7 +26,7 @@ Create and edit a runtime env file:
 
 ```bash
 sudo mkdir -p /etc/fruits-api
-sudo cp /var/www/fruits-springboot-api/.env.example /etc/fruits-api/fruits-api.env
+sudo cp /var/www/myclients-backend/api/.env.example /etc/fruits-api/fruits-api.env
 sudo nano /etc/fruits-api/fruits-api.env
 ```
 
@@ -41,7 +41,7 @@ Recommended production changes:
 Create service file:
 
 ```bash
-sudo nano /etc/systemd/system/fruits-api.service
+sudo nano /etc/systemd/system/fruits-springboot-api.service
 ```
 
 Paste:
@@ -54,9 +54,9 @@ After=network.target
 [Service]
 Type=simple
 User=www-data
-WorkingDirectory=/var/www/fruits-springboot-api
+WorkingDirectory=/var/www/myclients-backend/api
 EnvironmentFile=/etc/fruits-api/fruits-api.env
-ExecStart=/usr/bin/java -jar /var/www/fruits-springboot-api/target/fruits-springboot-api-0.0.1-SNAPSHOT.jar
+ExecStart=/usr/bin/java -jar /var/www/myclients-backend/api/target/myclients-backend-0.0.1-SNAPSHOT.jar
 Restart=on-failure
 RestartSec=5
 
@@ -68,9 +68,9 @@ Enable and start:
 
 ```bash
 sudo systemctl daemon-reload
-sudo systemctl enable fruits-api
-sudo systemctl restart fruits-api
-sudo systemctl status fruits-api
+sudo systemctl enable fruits-springboot-api
+sudo systemctl restart fruits-springboot-api
+sudo systemctl status fruits-springboot-api
 ```
 
 ## 5. nginx Reverse Proxy (optional)

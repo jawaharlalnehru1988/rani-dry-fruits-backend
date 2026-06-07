@@ -1,4 +1,4 @@
-package com.asknehru.fruitsapi.exception;
+package com.asknehru.myclientsapi.core.exception;
 
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;

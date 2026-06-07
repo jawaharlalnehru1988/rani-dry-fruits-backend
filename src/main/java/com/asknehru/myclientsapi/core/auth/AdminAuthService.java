@@ -1,8 +1,8 @@
-package com.asknehru.fruitsapi.service;
+package com.asknehru.myclientsapi.core.auth;
 
-import com.asknehru.fruitsapi.dto.AdminLoginRequest;
-import com.asknehru.fruitsapi.dto.AdminLoginResponse;
-import com.asknehru.fruitsapi.exception.UnauthorizedException;
+import com.asknehru.myclientsapi.core.auth.AdminLoginRequest;
+import com.asknehru.myclientsapi.core.auth.AdminLoginResponse;
+import com.asknehru.myclientsapi.core.exception.UnauthorizedException;
 import java.time.Instant;
 import java.util.Map;
 import java.util.UUID;

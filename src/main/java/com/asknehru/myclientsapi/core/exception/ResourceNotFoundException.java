@@ -1,4 +1,4 @@
-package com.asknehru.fruitsapi.exception;
+package com.asknehru.myclientsapi.core.exception;
 
 public class ResourceNotFoundException extends RuntimeException {
 

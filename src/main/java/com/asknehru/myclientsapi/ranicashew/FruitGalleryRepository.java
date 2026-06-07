@@ -1,6 +1,6 @@
-package com.asknehru.fruitsapi.repository;
+package com.asknehru.myclientsapi.ranicashew;
 
-import com.asknehru.fruitsapi.domain.FruitGallery;
+import com.asknehru.myclientsapi.ranicashew.FruitGallery;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;

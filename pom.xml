@@ -12,10 +12,10 @@
     </parent>
 
     <groupId>com.asknehru</groupId>
-    <artifactId>fruits-springboot-api</artifactId>
+    <artifactId>myclients-backend</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>fruits-springboot-api</name>
-    <description>Spring Boot REST API for fruits gallery</description>
+    <name>myclients-backend</name>
+    <description>Modular Monolith Clients Backend Service</description>
 
     <properties>
         <java.version>21</java.version>

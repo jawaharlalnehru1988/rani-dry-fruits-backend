@@ -1,9 +1,9 @@
-package com.asknehru.fruitsapi.controller;
+package com.asknehru.myclientsapi.core.auth;
 
-import com.asknehru.fruitsapi.dto.AdminLoginRequest;
-import com.asknehru.fruitsapi.dto.AdminLoginResponse;
-import com.asknehru.fruitsapi.exception.UnauthorizedException;
-import com.asknehru.fruitsapi.service.AdminAuthService;
+import com.asknehru.myclientsapi.core.auth.AdminLoginRequest;
+import com.asknehru.myclientsapi.core.auth.AdminLoginResponse;
+import com.asknehru.myclientsapi.core.exception.UnauthorizedException;
+import com.asknehru.myclientsapi.core.auth.AdminAuthService;
 import jakarta.validation.Valid;
 import java.util.Map;
 import org.springframework.http.ResponseEntity;

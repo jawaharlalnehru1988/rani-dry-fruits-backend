@@ -1,7 +1,7 @@
-package com.asknehru.fruitsapi.config;
+package com.asknehru.myclientsapi.core.config;
 
-import com.asknehru.fruitsapi.exception.UnauthorizedException;
-import com.asknehru.fruitsapi.service.AdminAuthService;
+import com.asknehru.myclientsapi.core.exception.UnauthorizedException;
+import com.asknehru.myclientsapi.core.auth.AdminAuthService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpMethod;

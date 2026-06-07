@@ -3,7 +3,7 @@ server:
 
 spring:
   application:
-    name: fruits-springboot-api
+    name: myclients-backend
   datasource:
     url: ${DB_URL:jdbc:postgresql://localhost:5432/demoappdb}
     username: ${DB_USER:demoappuser}
