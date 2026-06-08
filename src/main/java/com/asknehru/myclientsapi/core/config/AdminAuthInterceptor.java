@@ -37,6 +37,15 @@ public class AdminAuthInterceptor implements HandlerInterceptor {
             throw new UnauthorizedException("Admin login required");
         }
 
+        // Enforce route restrictions per admin user
+        if (requestPath.startsWith("/api/products") && !"HareKrishna".equals(username)) {
+            throw new UnauthorizedException("Access Denied: You do not have permissions to manage the Dress Catalogue.");
+        }
+
+        if (requestPath.startsWith("/api/fruits-gallery") && !"Ganeshan".equals(username)) {
+            throw new UnauthorizedException("Access Denied: You do not have permissions to manage Rani Cashew Products.");
+        }
+
         return true;
     }
 

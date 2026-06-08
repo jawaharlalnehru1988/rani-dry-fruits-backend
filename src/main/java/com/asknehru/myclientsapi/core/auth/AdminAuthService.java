@@ -13,23 +13,23 @@ import org.springframework.stereotype.Service;
 @Service
 public class AdminAuthService {
 
-    private final String configuredUsername;
-    private final String configuredPassword;
+    private final AdminUserRepository adminUserRepository;
     private final long sessionTtlMinutes;
     private final Map<String, SessionData> sessions = new ConcurrentHashMap<>();
 
     public AdminAuthService(
-        @Value("${admin.auth.username}") String configuredUsername,
-        @Value("${admin.auth.password}") String configuredPassword,
-        @Value("${admin.auth.session-ttl-minutes}") long sessionTtlMinutes
+        AdminUserRepository adminUserRepository,
+        @Value("${admin.auth.session-ttl-minutes:120}") long sessionTtlMinutes
     ) {
-        this.configuredUsername = configuredUsername;
-        this.configuredPassword = configuredPassword;
+        this.adminUserRepository = adminUserRepository;
         this.sessionTtlMinutes = sessionTtlMinutes;
     }
 
     public AdminLoginResponse login(AdminLoginRequest request) {
-        if (!configuredUsername.equals(request.username()) || !configuredPassword.equals(request.password())) {
+        AdminUser admin = adminUserRepository.findByUsername(request.username())
+            .orElseThrow(() -> new UnauthorizedException("Invalid username or password"));
+
+        if (!admin.getPassword().equals(request.password())) {
             throw new UnauthorizedException("Invalid username or password");
         }
 

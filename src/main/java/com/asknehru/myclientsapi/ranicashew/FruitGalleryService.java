@@ -110,6 +110,11 @@ public class FruitGalleryService {
         List<FruitGalleryImage> images;
         if (shouldReplaceImages(request)) {
             List<FruitGalleryImage> existing = fruitGalleryImageRepository.findAllByFruitIdOrderByIdAsc(id);
+            for (FruitGalleryImage img : existing) {
+                if (img.getImagePath() != null) {
+                    mediaStorageService.deleteImageByUrl(img.getImagePath());
+                }
+            }
             fruitGalleryImageRepository.deleteAll(existing);
             images = buildImages(fruit, resolvedPaths);
             fruitGalleryImageRepository.saveAll(images);
@@ -124,6 +129,12 @@ public class FruitGalleryService {
     public void delete(Long id) {
         FruitGallery fruit = fruitGalleryRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Fruit gallery not found with id: " + id));
+        List<FruitGalleryImage> existing = fruitGalleryImageRepository.findAllByFruitIdOrderByIdAsc(id);
+        for (FruitGalleryImage img : existing) {
+            if (img.getImagePath() != null) {
+                mediaStorageService.deleteImageByUrl(img.getImagePath());
+            }
+        }
         fruitGalleryRepository.delete(fruit);
     }
 

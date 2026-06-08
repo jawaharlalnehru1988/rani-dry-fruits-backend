@@ -5,6 +5,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.asknehru.myclientsapi.core.media.MediaStorageService;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -12,9 +13,11 @@ import java.util.stream.Collectors;
 public class ProductService {
 
     private final ProductRepository productRepository;
+    private final MediaStorageService mediaStorageService;
 
-    public ProductService(ProductRepository productRepository) {
+    public ProductService(ProductRepository productRepository, MediaStorageService mediaStorageService) {
         this.productRepository = productRepository;
+        this.mediaStorageService = mediaStorageService;
     }
 
     @Transactional(readOnly = true)
@@ -37,7 +40,13 @@ public class ProductService {
         Product product = new Product();
         product.setName(request.getName());
         product.setCategory(request.getCategory());
-        product.setImageUrl(request.getImageUrl());
+        
+        String imageUrl = request.getImageUrl();
+        if (imageUrl != null && imageUrl.startsWith("data:image/")) {
+            imageUrl = mediaStorageService.storeProductDataImage(imageUrl, request.getName());
+        }
+        product.setImageUrl(imageUrl);
+        
         product.setProdDesc(request.getProdDesc());
         product.setIsNew(request.getIsNew() != null ? request.getIsNew() : false);
 
@@ -65,7 +74,19 @@ public class ProductService {
 
         if (request.getName() != null) product.setName(request.getName());
         if (request.getCategory() != null) product.setCategory(request.getCategory());
-        if (request.getImageUrl() != null) product.setImageUrl(request.getImageUrl());
+        
+        if (request.getImageUrl() != null) {
+            String imageUrl = request.getImageUrl();
+            String oldImageUrl = product.getImageUrl();
+            if (imageUrl.startsWith("data:image/")) {
+                imageUrl = mediaStorageService.storeProductDataImage(imageUrl, product.getName());
+            }
+            if (oldImageUrl != null && !oldImageUrl.equals(imageUrl)) {
+                mediaStorageService.deleteImageByUrl(oldImageUrl);
+            }
+            product.setImageUrl(imageUrl);
+        }
+        
         if (request.getProdDesc() != null) product.setProdDesc(request.getProdDesc());
         if (request.getIsNew() != null) product.setIsNew(request.getIsNew());
 
@@ -91,7 +112,11 @@ public class ProductService {
     public void deleteProduct(Long id) {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + id));
+        String imageUrl = product.getImageUrl();
         productRepository.delete(product);
+        if (imageUrl != null) {
+            mediaStorageService.deleteImageByUrl(imageUrl);
+        }
     }
 
     private ProductResponse toResponse(Product product) {
