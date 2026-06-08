@@ -12,7 +12,7 @@ This guide describes a simple production setup on Linux using Java 21, Maven, Po
 ## 2. Build
 
 ```bash
-cd /var/www/myclients-backend/api
+cd /var/www/myclients-fullstacts/myclients-backend
 mvn clean package
 ```
 
@@ -26,7 +26,7 @@ Create and edit a runtime env file:
 
 ```bash
 sudo mkdir -p /etc/fruits-api
-sudo cp /var/www/myclients-backend/api/.env.example /etc/fruits-api/fruits-api.env
+sudo cp /var/www/myclients-fullstacts/myclients-backend/.env.example /etc/fruits-api/fruits-api.env
 sudo nano /etc/fruits-api/fruits-api.env
 ```
 
@@ -54,9 +54,9 @@ After=network.target
 [Service]
 Type=simple
 User=www-data
-WorkingDirectory=/var/www/myclients-backend/api
+WorkingDirectory=/var/www/myclients-fullstacts/myclients-backend
 EnvironmentFile=/etc/fruits-api/fruits-api.env
-ExecStart=/usr/bin/java -jar /var/www/myclients-backend/api/target/myclients-backend-0.0.1-SNAPSHOT.jar
+ExecStart=/usr/bin/java -jar /var/www/myclients-fullstacts/myclients-backend/target/myclients-backend-0.0.1-SNAPSHOT.jar
 Restart=on-failure
 RestartSec=5
 

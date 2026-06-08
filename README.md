@@ -92,7 +92,7 @@ Authorization: Bearer <token>
 ## Run
 
 ```bash
-cd /var/www/myclients-backend/api
+cd /var/www/myclients-fullstacts/myclients-backend
 mvn spring-boot:run
 ```
 
@@ -101,7 +101,7 @@ Runs on port `8084` by default.
 ## Build
 
 ```bash
-cd /var/www/myclients-backend/api
+cd /var/www/myclients-fullstacts/myclients-backend
 mvn clean package
 ```
 
