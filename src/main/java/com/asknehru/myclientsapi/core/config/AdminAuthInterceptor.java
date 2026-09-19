@@ -42,7 +42,7 @@ public class AdminAuthInterceptor implements HandlerInterceptor {
             throw new UnauthorizedException("Access Denied: You do not have permissions to manage the Dress Catalogue.");
         }
 
-        if (requestPath.startsWith("/api/fruits-gallery") && !"Ganeshan".equals(username)) {
+        if ((requestPath.startsWith("/api/fruits-gallery") || requestPath.startsWith("/api/fruit-combos")) && !"Ganeshan".equals(username)) {
             throw new UnauthorizedException("Access Denied: You do not have permissions to manage Rani Cashew Products.");
         }
 

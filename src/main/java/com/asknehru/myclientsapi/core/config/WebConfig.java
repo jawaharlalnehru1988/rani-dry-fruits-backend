@@ -32,10 +32,14 @@ public class WebConfig implements WebMvcConfigurer {
             .allowedOrigins(
                 "http://localhost:3000",
                 "http://127.0.0.1:3000",
+                "http://localhost:3001",
+                "http://127.0.0.1:3001",
                 "http://localhost:4200",
                 "https://admin.asknehru.com",
                 "https://asknehru.com",
-                "https://harekrishnatex.asknehru.com"
+                "https://harekrishnatex.asknehru.com",
+                "https://ranicashewproducts.com",
+                "https://www.ranicashewproducts.com"
             )
             .allowedMethods("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
             .allowedHeaders("*")

@@ -12,6 +12,11 @@ public class ApiValidationException extends RuntimeException {
         this.errors = errors;
     }
 
+    public ApiValidationException(String message) {
+        super(message);
+        this.errors = Map.of("error", List.of(message));
+    }
+
     public Map<String, List<String>> getErrors() {
         return errors;
     }

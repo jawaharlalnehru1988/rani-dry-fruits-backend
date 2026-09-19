@@ -19,6 +19,9 @@ public class FruitGalleryWriteRequest {
 
     private List<ImageInput> images;
 
+    @JsonProperty("weightPrices")
+    private List<WeightPriceInput> weightPrices;
+
     public FruitGalleryWriteRequest() {}
 
     public String getName() {
@@ -69,6 +72,14 @@ public class FruitGalleryWriteRequest {
         this.images = images;
     }
 
+    public List<WeightPriceInput> getWeightPrices() {
+        return weightPrices;
+    }
+
+    public void setWeightPrices(List<WeightPriceInput> weightPrices) {
+        this.weightPrices = weightPrices;
+    }
+
     public static class ImageInput {
         @JsonProperty("imageUrl")
         private String imageUrl;
@@ -81,6 +92,51 @@ public class FruitGalleryWriteRequest {
 
         public void setImageUrl(String imageUrl) {
             this.imageUrl = imageUrl;
+        }
+    }
+
+    public static class WeightPriceInput {
+        private String weight;
+        private BigDecimal mrp;
+
+        @JsonProperty("discountPercentage")
+        private BigDecimal discountPercentage;
+
+        @JsonProperty("offerPrice")
+        private BigDecimal offerPrice;
+
+        public WeightPriceInput() {}
+
+        public String getWeight() {
+            return weight;
+        }
+
+        public void setWeight(String weight) {
+            this.weight = weight;
+        }
+
+        public BigDecimal getMrp() {
+            return mrp;
+        }
+
+        public void setMrp(BigDecimal mrp) {
+            this.mrp = mrp;
+        }
+
+        public BigDecimal getDiscountPercentage() {
+            return discountPercentage;
+        }
+
+        public void setDiscountPercentage(BigDecimal discountPercentage) {
+            this.discountPercentage = discountPercentage;
+        }
+
+        public BigDecimal getOfferPrice() {
+            return offerPrice;
+        }
+
+        public void setOfferPrice(BigDecimal offerPrice) {
+            this.offerPrice = offerPrice;
         }
     }
 }

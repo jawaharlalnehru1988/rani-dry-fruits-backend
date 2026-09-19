@@ -1,16 +1,12 @@
 package com.asknehru.myclientsapi.ranicashew;
 
-import com.asknehru.myclientsapi.ranicashew.FruitGallery;
-import com.asknehru.myclientsapi.ranicashew.FruitGalleryImage;
-import com.asknehru.myclientsapi.ranicashew.FruitGalleryResponse;
-import com.asknehru.myclientsapi.ranicashew.FruitGalleryWriteRequest;
 import com.asknehru.myclientsapi.ranicashew.FruitGalleryWriteRequest.ImageInput;
+import com.asknehru.myclientsapi.ranicashew.FruitGalleryWriteRequest.WeightPriceInput;
 import com.asknehru.myclientsapi.core.exception.ApiValidationException;
 import com.asknehru.myclientsapi.core.exception.ResourceNotFoundException;
 import com.asknehru.myclientsapi.core.media.MediaStorageService;
-import com.asknehru.myclientsapi.ranicashew.FruitGalleryImageRepository;
-import com.asknehru.myclientsapi.ranicashew.FruitGalleryRepository;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -26,15 +22,18 @@ public class FruitGalleryService {
 
     private final FruitGalleryRepository fruitGalleryRepository;
     private final FruitGalleryImageRepository fruitGalleryImageRepository;
+    private final FruitWeightPriceRepository fruitWeightPriceRepository;
     private final MediaStorageService mediaStorageService;
 
     public FruitGalleryService(
         FruitGalleryRepository fruitGalleryRepository,
         FruitGalleryImageRepository fruitGalleryImageRepository,
+        FruitWeightPriceRepository fruitWeightPriceRepository,
         MediaStorageService mediaStorageService
     ) {
         this.fruitGalleryRepository = fruitGalleryRepository;
         this.fruitGalleryImageRepository = fruitGalleryImageRepository;
+        this.fruitWeightPriceRepository = fruitWeightPriceRepository;
         this.mediaStorageService = mediaStorageService;
     }
 
@@ -45,14 +44,22 @@ public class FruitGalleryService {
             return List.of();
         }
 
+        List<Long> fruitIds = fruits.stream().map(FruitGallery::getId).toList();
+
         Map<Long, List<FruitGalleryImage>> imagesByFruitId = groupImagesByFruitId(
-            fruitGalleryImageRepository.findAllByFruitIdInOrderByFruitIdAscIdAsc(
-                fruits.stream().map(FruitGallery::getId).toList()
-            )
+            fruitGalleryImageRepository.findAllByFruitIdInOrderByFruitIdAscIdAsc(fruitIds)
+        );
+
+        Map<Long, List<FruitWeightPrice>> weightPricesByFruitId = groupWeightPricesByFruitId(
+            fruitWeightPriceRepository.findAllByFruitIdInOrderByFruitIdAscIdAsc(fruitIds)
         );
 
         return fruits.stream()
-            .map(fruit -> toResponse(fruit, imagesByFruitId.getOrDefault(fruit.getId(), List.of())))
+            .map(fruit -> toResponse(
+                fruit,
+                imagesByFruitId.getOrDefault(fruit.getId(), List.of()),
+                weightPricesByFruitId.getOrDefault(fruit.getId(), List.of())
+            ))
             .toList();
     }
 
@@ -62,7 +69,8 @@ public class FruitGalleryService {
             .orElseThrow(() -> new ResourceNotFoundException("Fruit gallery not found with id: " + id));
 
         List<FruitGalleryImage> images = fruitGalleryImageRepository.findAllByFruitIdOrderByIdAsc(id);
-        return toResponse(fruit, images);
+        List<FruitWeightPrice> weightPrices = fruitWeightPriceRepository.findAllByFruitIdOrderByIdAsc(id);
+        return toResponse(fruit, images, weightPrices);
     }
 
     @Transactional
@@ -81,7 +89,13 @@ public class FruitGalleryService {
         List<FruitGalleryImage> images = buildImages(fruit, resolvedPaths);
         fruitGalleryImageRepository.saveAll(images);
 
-        return toResponse(fruit, images);
+        List<FruitWeightPrice> weightPrices = buildWeightPrices(fruit, request.getWeightPrices());
+        if (weightPrices.isEmpty()) {
+            weightPrices = buildDefaultWeightPrices(fruit);
+        }
+        fruitWeightPriceRepository.saveAll(weightPrices);
+
+        return toResponse(fruit, images, weightPrices);
     }
 
     @Transactional
@@ -111,7 +125,7 @@ public class FruitGalleryService {
         if (shouldReplaceImages(request)) {
             List<FruitGalleryImage> existing = fruitGalleryImageRepository.findAllByFruitIdOrderByIdAsc(id);
             for (FruitGalleryImage img : existing) {
-                if (img.getImagePath() != null) {
+                if (img.getImagePath() != null && !resolvedPaths.contains(img.getImagePath())) {
                     mediaStorageService.deleteImageByUrl(img.getImagePath());
                 }
             }
@@ -122,7 +136,17 @@ public class FruitGalleryService {
             images = fruitGalleryImageRepository.findAllByFruitIdOrderByIdAsc(id);
         }
 
-        return toResponse(fruit, images);
+        List<FruitWeightPrice> weightPrices;
+        if (request.getWeightPrices() != null) {
+            List<FruitWeightPrice> existingWp = fruitWeightPriceRepository.findAllByFruitIdOrderByIdAsc(id);
+            fruitWeightPriceRepository.deleteAll(existingWp);
+            weightPrices = buildWeightPrices(fruit, request.getWeightPrices());
+            fruitWeightPriceRepository.saveAll(weightPrices);
+        } else {
+            weightPrices = fruitWeightPriceRepository.findAllByFruitIdOrderByIdAsc(id);
+        }
+
+        return toResponse(fruit, images, weightPrices);
     }
 
     @Transactional
@@ -135,10 +159,11 @@ public class FruitGalleryService {
                 mediaStorageService.deleteImageByUrl(img.getImagePath());
             }
         }
+        fruitWeightPriceRepository.deleteAll(fruitWeightPriceRepository.findAllByFruitIdOrderByIdAsc(id));
         fruitGalleryRepository.delete(fruit);
     }
 
-    private FruitGalleryResponse toResponse(FruitGallery fruit, List<FruitGalleryImage> images) {
+    private FruitGalleryResponse toResponse(FruitGallery fruit, List<FruitGalleryImage> images, List<FruitWeightPrice> weightPrices) {
         FruitGalleryResponse response = new FruitGalleryResponse();
         response.setId(fruit.getId());
         response.setName(fruit.getName());
@@ -146,6 +171,14 @@ public class FruitGalleryService {
         response.setDiscountPercentage(fruit.getDiscountPercentage());
         response.setDescription(fruit.getDescription());
         response.setImagePath(images.stream().map(FruitGalleryImage::getImagePath).toList());
+        response.setImages(images.stream().map(img -> new FruitGalleryResponse.ImageDto(img.getId(), img.getImagePath())).toList());
+        response.setWeightPrices(weightPrices.stream().map(wp -> new FruitGalleryResponse.WeightPriceDto(
+            wp.getId(),
+            wp.getWeight(),
+            wp.getMrp(),
+            wp.getDiscountPercentage(),
+            wp.getOfferPrice()
+        )).toList());
         response.setCreatedAt(fruit.getCreatedAt());
         response.setUpdatedAt(fruit.getUpdatedAt());
         return response;
@@ -162,6 +195,55 @@ public class FruitGalleryService {
             .toList();
     }
 
+    private List<FruitWeightPrice> buildWeightPrices(FruitGallery fruit, List<WeightPriceInput> inputs) {
+        if (inputs == null || inputs.isEmpty()) {
+            return List.of();
+        }
+        return inputs.stream()
+            .filter(input -> input != null && input.getWeight() != null && !input.getWeight().trim().isEmpty())
+            .map(input -> {
+                FruitWeightPrice wp = new FruitWeightPrice();
+                wp.setFruit(fruit);
+                wp.setWeight(input.getWeight().trim());
+                BigDecimal mrp = input.getMrp() != null ? input.getMrp() : BigDecimal.ZERO;
+                wp.setMrp(mrp);
+                BigDecimal discount = input.getDiscountPercentage() != null ? input.getDiscountPercentage() : new BigDecimal("10.00");
+                wp.setDiscountPercentage(discount);
+
+                BigDecimal offerPrice = input.getOfferPrice();
+                if (offerPrice == null) {
+                    BigDecimal discountFactor = BigDecimal.ONE.subtract(discount.divide(new BigDecimal("100"), 4, RoundingMode.HALF_UP));
+                    offerPrice = mrp.multiply(discountFactor).setScale(2, RoundingMode.HALF_UP);
+                }
+                wp.setOfferPrice(offerPrice);
+                return wp;
+            })
+            .toList();
+    }
+
+    private List<FruitWeightPrice> buildDefaultWeightPrices(FruitGallery fruit) {
+        BigDecimal basePrice = fruit.getPrice() != null ? fruit.getPrice() : BigDecimal.ZERO;
+        BigDecimal discount = fruit.getDiscountPercentage() != null && fruit.getDiscountPercentage().compareTo(BigDecimal.ZERO) > 0
+            ? fruit.getDiscountPercentage() : new BigDecimal("10.00");
+
+        List<FruitWeightPrice> list = new ArrayList<>();
+        String[] weights = {"250gm", "500gm", "1Kg"};
+        BigDecimal[] multipliers = {BigDecimal.ONE, new BigDecimal("1.95"), new BigDecimal("3.8")};
+
+        for (int i = 0; i < weights.length; i++) {
+            FruitWeightPrice wp = new FruitWeightPrice();
+            wp.setFruit(fruit);
+            wp.setWeight(weights[i]);
+            BigDecimal mrp = basePrice.multiply(multipliers[i]).setScale(2, RoundingMode.HALF_UP);
+            wp.setMrp(mrp);
+            wp.setDiscountPercentage(discount);
+            BigDecimal discountFactor = BigDecimal.ONE.subtract(discount.divide(new BigDecimal("100"), 4, RoundingMode.HALF_UP));
+            wp.setOfferPrice(mrp.multiply(discountFactor).setScale(2, RoundingMode.HALF_UP));
+            list.add(wp);
+        }
+        return list;
+    }
+
     private Map<Long, List<FruitGalleryImage>> groupImagesByFruitId(List<FruitGalleryImage> images) {
         Map<Long, List<FruitGalleryImage>> result = new HashMap<>();
         for (FruitGalleryImage image : images) {
@@ -171,8 +253,28 @@ public class FruitGalleryService {
         return result;
     }
 
+    private Map<Long, List<FruitWeightPrice>> groupWeightPricesByFruitId(List<FruitWeightPrice> weightPrices) {
+        Map<Long, List<FruitWeightPrice>> result = new HashMap<>();
+        for (FruitWeightPrice wp : weightPrices) {
+            Long fruitId = wp.getFruit().getId();
+            result.computeIfAbsent(fruitId, ignored -> new ArrayList<>()).add(wp);
+        }
+        return result;
+    }
+
     private void validateRequest(FruitGalleryWriteRequest request, boolean partial) {
         Map<String, List<String>> errors = new HashMap<>();
+
+        // If price or discount percentage are not set on root request, derive them from the first weight variant if present
+        if (request.getWeightPrices() != null && !request.getWeightPrices().isEmpty()) {
+            WeightPriceInput first = request.getWeightPrices().get(0);
+            if (request.getPrice() == null && first.getMrp() != null) {
+                request.setPrice(first.getMrp());
+            }
+            if (request.getDiscountPercentage() == null && first.getDiscountPercentage() != null) {
+                request.setDiscountPercentage(first.getDiscountPercentage());
+            }
+        }
 
         if (!partial) {
             if (request.getName() == null) {
@@ -186,9 +288,6 @@ public class FruitGalleryService {
             }
             if (request.getDescription() == null) {
                 addError(errors, "description", "This field is required.");
-            }
-            if (request.getImagePath() == null && request.getImages() == null) {
-                addError(errors, "imagePath", "Provide imagePath or images.");
             }
         }
 
@@ -215,27 +314,52 @@ public class FruitGalleryService {
             }
         }
 
+        List<String> cleanedPaths = null;
         if (request.getImagePath() != null) {
-            List<String> cleanedPaths = request.getImagePath().stream()
+            cleanedPaths = request.getImagePath().stream()
                 .filter(path -> path != null && !path.trim().isEmpty())
                 .map(String::trim)
                 .collect(Collectors.toList());
-
-            if (cleanedPaths.isEmpty()) {
-                addError(errors, "imagePath", "At least one image path is required.");
-            }
             request.setImagePath(cleanedPaths);
         }
 
+        List<ImageInput> cleanedImages = null;
         if (request.getImages() != null) {
-            List<ImageInput> cleanedImages = request.getImages().stream()
+            cleanedImages = request.getImages().stream()
                 .filter(image -> image != null && image.getImageUrl() != null && !image.getImageUrl().trim().isEmpty())
                 .toList();
-
-            if (cleanedImages.isEmpty()) {
-                addError(errors, "images", "At least one imageUrl is required.");
-            }
             request.setImages(cleanedImages);
+        }
+
+        boolean hasImagePath = cleanedPaths != null && !cleanedPaths.isEmpty();
+        boolean hasImages = cleanedImages != null && !cleanedImages.isEmpty();
+
+        if (!partial) {
+            if (!hasImagePath && !hasImages) {
+                addError(errors, "images", "At least one image or imageUrl is required.");
+            }
+        } else {
+            boolean imagesFieldProvided = (request.getImagePath() != null || request.getImages() != null);
+            if (imagesFieldProvided && !hasImagePath && !hasImages) {
+                addError(errors, "images", "At least one image or imageUrl is required.");
+            }
+        }
+
+        if (request.getWeightPrices() != null) {
+            for (int i = 0; i < request.getWeightPrices().size(); i++) {
+                WeightPriceInput wp = request.getWeightPrices().get(i);
+                if (wp == null || wp.getWeight() == null || wp.getWeight().trim().isEmpty()) {
+                    addError(errors, "weightPrices[" + i + "].weight", "Weight is required.");
+                }
+                if (wp != null && wp.getMrp() != null && wp.getMrp().compareTo(BigDecimal.ZERO) < 0) {
+                    addError(errors, "weightPrices[" + i + "].mrp", "MRP must be greater than or equal to 0.");
+                }
+                if (wp != null && wp.getDiscountPercentage() != null) {
+                    if (wp.getDiscountPercentage().compareTo(BigDecimal.ZERO) < 0 || wp.getDiscountPercentage().compareTo(new BigDecimal("100")) > 0) {
+                        addError(errors, "weightPrices[" + i + "].discountPercentage", "Offer percentage must be between 0 and 100.");
+                    }
+                }
+            }
         }
 
         if (!errors.isEmpty()) {
@@ -260,7 +384,9 @@ public class FruitGalleryService {
     }
 
     private boolean shouldReplaceImages(FruitGalleryWriteRequest request) {
-        return request.getImagePath() != null || request.getImages() != null;
+        boolean hasImagePath = request.getImagePath() != null && !request.getImagePath().isEmpty();
+        boolean hasImages = request.getImages() != null && !request.getImages().isEmpty();
+        return hasImagePath || hasImages;
     }
 
     private void addError(Map<String, List<String>> errors, String field, String message) {
